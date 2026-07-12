@@ -1,5 +1,6 @@
 const QRCode = require('qrcode');
 const sharp = require('sharp');
+const { getDb } = require('../config/db');
 
 /**
  * Renders a PNG buffer of a QR code encoding the given text.
@@ -32,4 +33,32 @@ async function generateQrPng(text, { size = 400, colorDark = '#000000', colorLig
     .toBuffer();
 }
 
-module.exports = { generateQrPng };
+/**
+ * Logs a QR code generation event in upload_history.
+ */
+async function logGeneration(userId) {
+  const db = getDb();
+  await db.collection('upload_history').insertOne({
+    user_id: userId,
+    created_at: new Date()
+  });
+}
+
+/**
+ * Gets the number of generated QR codes in the last 24 hours for a user.
+ */
+async function getGenerationCount24h(userId) {
+  const db = getDb();
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  return await db.collection('upload_history').countDocuments({
+    user_id: userId,
+    created_at: { $gte: twentyFourHoursAgo }
+  });
+}
+
+module.exports = {
+  generateQrPng,
+  logGeneration,
+  getGenerationCount24h
+};
+

@@ -10,8 +10,7 @@ const { healthCheck } = require('./config/db');
 const { generalLimiter } = require('./middleware/rateLimiter');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
 
-const documentRoutes = require('./routes/documentRoutes');
-const scanRoutes = require('./routes/scanRoutes');
+const qrRoutes = require('./routes/qrRoutes');
 
 const app = express();
 
@@ -36,11 +35,8 @@ app.get('/health', async (req, res) => {
   }
 });
 
-// This is the short, stable URL encoded inside every QR code.
-app.use('/scan', scanRoutes);
-
-// Full CRUD + image generation API for whatever frontend calls this service.
-app.use('/api/documents', documentRoutes);
+// API endpoint for generating static QR codes.
+app.use('/api/qr', qrRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
