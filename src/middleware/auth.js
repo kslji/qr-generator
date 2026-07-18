@@ -4,6 +4,18 @@ const AppError = require('../utils/AppError');
 
 function auth(req, res, next) {
   try {
+    const gatewayUserId = req.headers['x-user-id'];
+    const gatewayUserEmail = req.headers['x-user-email'];
+    const forwardedBy = req.headers['x-forwarded-by'];
+
+    if (forwardedBy === 'auth-gateway' && gatewayUserId) {
+      req.user = {
+        id: gatewayUserId,
+        email: gatewayUserEmail || ''
+      };
+      return next();
+    }
+
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       throw new AppError('Access denied. No token provided.', 401, 'UNAUTHORIZED');
