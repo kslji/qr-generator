@@ -12,6 +12,8 @@ const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
 
 const qrRoutes = require('./routes/qrRoutes');
 
+const { centralLoggerMiddleware, centralErrorLoggerMiddleware } = require('./utils/logHelper');
+
 const app = express();
 
 app.disable('x-powered-by');
@@ -21,6 +23,7 @@ app.use(cors({
 }));
 app.use(compression());
 app.use(express.json());
+app.use(centralLoggerMiddleware('qr-barcode-backend'));
 app.use(morgan(env.nodeEnv === 'production' ? 'combined' : 'dev', {
   stream: { write: (msg) => logger.info(msg.trim()) }
 }));
@@ -39,6 +42,7 @@ app.get('/health', async (req, res) => {
 app.use('/api/qr', qrRoutes);
 
 app.use(notFoundHandler);
+app.use(centralErrorLoggerMiddleware('qr-barcode-backend'));
 app.use(errorHandler);
 
 module.exports = app;
